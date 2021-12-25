@@ -1,14 +1,14 @@
 import gc
 import os
-from typing import Any
+from math import ceil
+from typing import Any, List
 
 import torch
 from PIL import Image
-from torch import Tensor
-from torch.autograd import Variable
 from torchvision import transforms
 
 _model_file = '20211224-3-epoch26.pth'
+_batch_size = 8
 
 
 class ClassifierNet:
@@ -31,7 +31,7 @@ class ClassifierNet:
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
 
-    def predict(self, img_file: str):
+    def predict(self, img_file: str) -> bool:
         gc.collect()
         with torch.no_grad():
             img = Image.open(img_file).convert('RGB')
@@ -41,3 +41,25 @@ class ClassifierNet:
             out = self.__model(img)
             pred = torch.max(out, 1)[1].item()
         return pred == 1
+
+    def predict_many(self, image_files: List[str]) -> List[bool]:
+        gc.collect()
+        pred: List[bool] = []
+        with torch.no_grad():
+            iMax = ceil(len(image_files) / _batch_size)
+            for i in range(iMax):
+                batch = image_files[i * _batch_size: min((i + 1) * _batch_size, len(image_files))]
+                batch_tensors = []
+                for img_file in batch:
+                    img = Image.open(img_file).convert('RGB')
+                    img = self.__transformation(img)
+                    batch_tensors.append(img.to(self.__device))
+                batch_tensor = torch.stack(batch_tensors)
+                out = self.__model(batch_tensor)
+                batch_pred = torch.max(out, 1)[1]
+                for res in batch_pred:
+                    pred.append(res.item() == 1)
+        return pred
+
+
+net = ClassifierNet()

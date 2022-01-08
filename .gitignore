@@ -4,6 +4,9 @@
 
 workdir/local.json
 workdir/prod.json
+workdir/tmp
+workdir/nontext
+workdir/text
 
 ### Python template
 # Byte-compiled / optimized / DLL files

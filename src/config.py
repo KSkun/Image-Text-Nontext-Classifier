@@ -4,6 +4,15 @@ import json
 class ClassifierConfig:
     """Spider config data class"""
 
+    image_tmp_dir: str
+    image_text_dir: str
+    image_nontext_dir: str
+    image_url: str
+
+    mongo_addr: str
+    mongo_port: int
+    mongo_db: str
+
     redis_addr: str
     redis_port: int
     redis_db: int

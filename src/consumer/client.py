@@ -4,7 +4,7 @@ from typing import Dict, Union
 
 import walrus
 
-from src.consumer.command import ClassifyOneCmd, ClassifyManyCmd, ClassifierCmd
+from consumer.command import ClassifyOneCmd, ClassifyManyCmd, ClassifierCmd, ClassifyInitCmd
 
 _logger = logging.getLogger('image-classifier')
 
@@ -51,9 +51,18 @@ class ConsumerClient:
         if b'op' not in obj:
             _logger.error('error when reading cmd, ignore it: operation not set')
         op: str = obj[b'op'].decode()
+        if op == 'init':
+            return ClassifyInitCmd(redis_id)
+
+        task_id: str = obj[b'task_id'].decode()
         if op == 'one':
-            img: str = obj[b'image'].decode()
-            cmd = ClassifyOneCmd(redis_id, img)
+            img_str: str = obj[b'image'].decode()
+            try:
+                img = json.loads(img_str)
+            except Exception as e:
+                _logger.error('error when reading cmd, ignore it: %s' % e)
+                return None
+            cmd = ClassifyOneCmd(redis_id, task_id, img)
         elif op == 'many':
             imgs_str: str = obj[b'image'].decode()
             try:
@@ -61,7 +70,7 @@ class ConsumerClient:
             except Exception as e:
                 _logger.error('error when reading cmd, ignore it: %s' % e)
                 return None
-            cmd = ClassifyManyCmd(redis_id, imgs)
+            cmd = ClassifyManyCmd(redis_id, task_id, imgs)
         else:
             _logger.error('error when reading cmd, ignore it: unknown operation')
             return None

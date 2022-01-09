@@ -22,7 +22,8 @@ class ClassifierNet:
         self.__device = "cuda" if torch.cuda.is_available() else "cpu"
 
         self_dir = os.path.split(os.path.abspath(__file__))[0]
-        self.__model = torch.load(self_dir + '/' + _model_file).to(self.__device)
+        self.__model = torch.load(self_dir + '/' + _model_file,
+                                  map_location=torch.device(self.__device)).to(self.__device)
         self.__model.eval()
 
         self.__transformation = transforms.Compose([

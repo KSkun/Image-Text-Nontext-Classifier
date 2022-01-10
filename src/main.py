@@ -13,7 +13,7 @@ if __name__ == '__main__':
     logger = logging.getLogger('image-classifier')
     logger.info('starting Image Text/Non-text Classifier by KSkun')
 
-    config_file = os.getenv('CONFIG_FILE', default='default.json')
+    config_file = 'config/' + os.getenv('CONFIG_FILE', default='default.json')
     load_config(config_file)
     logger.info('config file %s loaded' % config_file)
 

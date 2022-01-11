@@ -48,16 +48,18 @@ Config files store in `./workdir/config`, an example can be found as `default.js
 
 Configuration steps:
 
-1. Set environment variable `CONFIG_FILE` to your config filename, if not set, it's `default.json`.
-2. Create symlinks from image tmp, text, non-text directory to `./workdir`
-3. Inside your config file, make sure the requirements below:
+1. Run `pip install -r requirements.txt`.
+2. Set environment variable `CONFIG_FILE` to your config filename, if not set, it's `default.json`.
+3. Create symlinks from image tmp, text, non-text directory to `./workdir`
+4. Inside your config file, make sure the requirements below:
     1. `image_tmp_dir`, `image_text_dir` and `image_nontext_dir` set to your symlinks as step 2.
     2. `image_url` is your static resource site prefix.
     3. `mongo_xxx` is your global MongoDB settings.
     4. `redis_xxx` is your global Redis settings.
-4. Create a redis stream `classify_cmd` and a consumer group `classifier` in your redis database.
+5. Create a redis stream `classify_cmd` and a consumer group `classifier` in your redis database.
 
    You can use an *init command* as `XADD classify_cmd * op init` to create the stream.
+6. Run `python ../src/main.py` with working directory `./workdir`.
 
 ### Docker
 

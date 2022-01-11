@@ -1,1 +1,7 @@
 **/.git
+test/
+docker/
+workdir/config
+workdir/nontext
+workdir/text
+workdir/tmp

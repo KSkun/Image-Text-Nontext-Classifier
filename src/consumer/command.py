@@ -10,6 +10,7 @@ from db.image import update_image_class
 
 class ClassifierCmd(ABC):
     """Abstract class for classifier commands"""
+
     # constants
     redis_id: str  # redis stream object id
     task_id: str  # task ObjectId in mongodb

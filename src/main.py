@@ -1,3 +1,7 @@
+# Image Text/Non-text Classifier by KSkun
+# for Software Course Project
+# 2021/12
+
 import logging
 import os
 from time import sleep

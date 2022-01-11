@@ -16,7 +16,7 @@ _block_time: int = 100  # block read wait time: 100ms
 
 
 class ConsumerClient:
-    """Spider redis client class"""
+    """Classifier redis client class"""
 
     # constants
     __addr: str  # redis host address
@@ -41,7 +41,6 @@ class ConsumerClient:
 
     def read_cmd(self) -> Union[ClassifierCmd, None]:
         """Fetch and parse a command to ClassifyCmd object"""
-
         result = []  # redis stream object
         # try read command until success
         while len(result) == 0:

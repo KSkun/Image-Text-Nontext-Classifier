@@ -3,7 +3,7 @@ import json
 
 class ClassifierConfig:
     """
-    Spider config data class
+    Classifier config data class
     See https://github.com/KSkun/Image-Text-Nontext-Classifier/blob/master/README.md
     """
 

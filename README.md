@@ -29,7 +29,8 @@ Command pattern:
     - for `one` command: a JSON-encoded string like `{"id": "image ObjectId in MongoDB", "file": "image filename"}`
     - for `many` command: a JSON-encoded string of an array of image objects like the one in `one` command
 
-The image file should be stored at `./workdir/tmp/<task ObjectId>/<image filename>`.
+The image file should be stored at `./workdir/tmp/<task ObjectId>/<image filename>`. After classifying, images will be
+copied to directory `./workdir/text/<task ObjectId>` or `./workdir/nontext/<task ObjectId>`.
 
 To cooperate with backend, after classification of each command, the classifier updates `class` field of each image
 document in MongoDB.
@@ -52,7 +53,7 @@ Configuration steps:
 2. Set environment variable `CONFIG_FILE` to your config filename, if not set, it's `default.json`.
 3. Create symlinks from image tmp, text, non-text directory to `./workdir`
 4. Inside your config file, make sure the requirements below:
-    1. `image_tmp_dir`, `image_text_dir` and `image_nontext_dir` set to your symlinks as step 2.
+    1. `image_tmp_dir`, `image_text_dir` and `image_nontext_dir` set to your symlinks as step 3.
     2. `image_url` is your static resource site prefix.
     3. `mongo_xxx` is your global MongoDB settings.
     4. `redis_xxx` is your global Redis settings.

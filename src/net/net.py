@@ -7,8 +7,8 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
-_model_file = '20211224-3-epoch26.pth'
-_batch_size = 8
+_model_file = '20211224-3-epoch26.pth'  # trained model filename
+_batch_size = 8  # batch size for predict_many
 
 
 class ClassifierNet:
@@ -19,13 +19,16 @@ class ClassifierNet:
     __transformation: Any
 
     def __init__(self):
+        # detect cuda support
         self.__device = "cuda" if torch.cuda.is_available() else "cpu"
 
+        # load model file
         self_dir = os.path.split(os.path.abspath(__file__))[0]
         self.__model = torch.load(self_dir + '/' + _model_file,
                                   map_location=torch.device(self.__device)).to(self.__device)
         self.__model.eval()
 
+        # set image transformation
         self.__transformation = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -33,6 +36,12 @@ class ClassifierNet:
         ])
 
     def predict(self, img_file: str) -> bool:
+        """
+        Predict the image contains text or not
+
+        :arg img_file: image file path
+        :return: if image contain text
+        """
         gc.collect()
         with torch.no_grad():
             img = Image.open(img_file).convert('RGB')
@@ -43,13 +52,19 @@ class ClassifierNet:
             pred = torch.max(out, 1)[1].item()
         return pred == 1
 
-    def predict_many(self, image_files: List[str]) -> List[bool]:
+    def predict_many(self, img_files: List[str]) -> List[bool]:
+        """
+        Predict many images contain text or not
+
+        :arg img_files: list of image file paths
+        :return: if images contain text
+        """
         gc.collect()
         pred: List[bool] = []
         with torch.no_grad():
-            iMax = ceil(len(image_files) / _batch_size)
+            iMax = ceil(len(img_files) / _batch_size)
             for i in range(iMax):
-                batch = image_files[i * _batch_size: min((i + 1) * _batch_size, len(image_files))]
+                batch = img_files[i * _batch_size: min((i + 1) * _batch_size, len(img_files))]
                 batch_tensors = []
                 for img_file in batch:
                     img = Image.open(img_file).convert('RGB')
@@ -63,4 +78,4 @@ class ClassifierNet:
         return pred
 
 
-net = ClassifierNet()
+net = ClassifierNet()  # instance of network

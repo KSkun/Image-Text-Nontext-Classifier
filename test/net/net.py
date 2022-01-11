@@ -4,7 +4,9 @@ from src.net.net import ClassifierNet
 
 
 class TestClassifierNet(unittest.TestCase):
+    """Function tests of neural network"""
     def test_predict(self):
+        """Test predicting one image"""
         text_img_file = '../../TextDis benchmark/text/text_000005.jpg'
         nontext_img_file = '../../TextDis benchmark/nonText/nonText_000005.jpg'
 
@@ -15,6 +17,7 @@ class TestClassifierNet(unittest.TestCase):
         self.assertTrue(text_result and not nontext_result)
 
     def test_predict_many(self):
+        """Test predicting many images"""
         text_img_file = '../../TextDis benchmark/text/text_%06d.jpg'
         imgs = []
         for i in range(1, 11):

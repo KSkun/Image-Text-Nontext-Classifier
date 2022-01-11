@@ -13,14 +13,17 @@ if __name__ == '__main__':
     logger = logging.getLogger('image-classifier')
     logger.info('starting Image Text/Non-text Classifier by KSkun')
 
+    # load config file
     config_file = 'config/' + os.getenv('CONFIG_FILE', default='default.json')
     load_config(config_file)
     logger.info('config file %s loaded' % config_file)
 
+    # init database objects
     init_db()
 
     client = ConsumerClient(C.redis_addr, C.redis_port, C.redis_db, C.consumer_id)
     while True:
+        # fetch command
         cmd = None
         try:
             cmd = client.read_cmd()
@@ -34,10 +37,12 @@ if __name__ == '__main__':
             continue
         logger.info('recv cmd id: %s, task_id: %s' % (cmd.redis_id, cmd.task_id))
 
+        # skip init command
         if isinstance(cmd, ClassifyInitCmd):
             logger.info('skip init cmd')
             continue
 
+        # execution
         result = None
         try:
             result = cmd.execute()
@@ -45,6 +50,7 @@ if __name__ == '__main__':
             logger.error('exception while execute cmd')
             logger.error(e)
 
+        # acknowledge
         try:
             client.ack_cmd(cmd.redis_id)
             mark_task_done(cmd.task_id)

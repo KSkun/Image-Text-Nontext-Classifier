@@ -2,7 +2,10 @@ import json
 
 
 class ClassifierConfig:
-    """Spider config data class"""
+    """
+    Spider config data class
+    See https://github.com/KSkun/Image-Text-Nontext-Classifier/blob/master/README.md
+    """
 
     image_tmp_dir: str
     image_text_dir: str
@@ -23,6 +26,7 @@ C = ClassifierConfig()
 
 
 def load_config(file_path: str):
+    """Load config fields to object C from file"""
     file = open(file_path, 'r')
     json_str = file.read()
     file.close()

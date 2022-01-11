@@ -1,20 +1,22 @@
-# Get cpu or gpu device for training.
 import torch
 from PIL import Image
 from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-#from google.colab import drive
+# from google.colab import drive
 import gc
 
+# detect cuda support
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
 
+# dataset root
 # root_dir = '/content/drive/MyDrive/TextDis benchmark/'
 root_dir = 'E:\\University\\21-22S1\\software_project\\TextDis benchmark\\'
 
 
+# dataset & loader
 # from https://www.cnblogs.com/denny402/p/7520063.html
 def default_loader(path):
     return Image.open(root_dir + path).convert('RGB')
@@ -45,6 +47,7 @@ class MyDataset(Dataset):
         return len(self.imgs)
 
 
+# image transformation
 t = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -52,56 +55,69 @@ t = transforms.Compose([
 ])
 
 if __name__ == '__main__':
+    # mount Google Drive (Colab only)
     # drive.mount('/content/drive')
 
     gc.collect()
+    # load model
     model = torch.hub.load('pytorch/vision:v0.10.0', 'vgg16', pretrained=False)
     model.classifier[-1] = nn.Linear(in_features=4096, out_features=2, bias=True)  # 2 classes
     model = model.to(device)
     print(model)
 
+    # load datasets
     train_data = MyDataset(txt=root_dir + 'trainList.txt', transform=t)
     test_data = MyDataset(txt=root_dir + 'testList.txt', transform=t)
     train_loader = DataLoader(dataset=train_data, batch_size=8, shuffle=True)
     test_loader = DataLoader(dataset=test_data, batch_size=8)
 
+    # set optimizer & loss function
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     loss_func = torch.nn.CrossEntropyLoss()
 
+    # training & evaluation
     for epoch in range(30):
         print('epoch {}'.format(epoch + 1))
+
         # training-----------------------------
+        model.train()
         train_loss = 0.
         train_acc = 0.
         train_tp, train_tn, train_fp, train_fn = 0., 0., 0., 0.
-        model.train()
         for imgs, labels in train_loader:
+            # get a batch of images
             imgs = Variable(imgs.to(device))
             labels = Variable(labels.to(device))
 
+            # training
             optimizer.zero_grad()
             out = model(imgs)
             loss = loss_func(out, labels)
             loss.backward()
             optimizer.step()
 
+            # calculate loss & accuracy
             train_loss += loss.item()
             pred = torch.max(out, 1)[1]
             train_correct = (pred == labels).sum()
             train_acc += train_correct.item()
 
+            # calculate f-measure
             train_tp += (labels * pred).sum()
             train_tn += ((1 - labels) * (1 - pred)).sum()
             train_fp += ((1 - labels) * pred).sum()
             train_fn += (labels * (1 - pred)).sum()
 
+        # calculate f-measure
         epsilon = 1e-7
         train_precision = train_tp / (train_tp + train_fp + epsilon)
         train_recall = train_tp / (train_tp + train_fn + epsilon)
         train_f1 = 2 * (train_precision * train_recall) / (train_precision + train_recall + epsilon)
+
         print('Train Loss: {:.6f}, Acc: {:.6f}, Recall: {:.6f}, F1: {:.6f}'.format(train_loss / (len(
             train_data)), train_acc / (len(train_data)), train_recall, train_f1))
 
+        # save the model
         model_path = '/content/drive/MyDrive/trained/20211224-3-epoch%d.pth' % (epoch + 1)
         torch.save(model, model_path)
         print('Model saved at %s' % model_path)
@@ -113,25 +129,31 @@ if __name__ == '__main__':
         eval_tp, eval_tn, eval_fp, eval_fn = 0., 0., 0., 0.
         with torch.no_grad():
             for imgs, labels in test_loader:
+                # get a batch of images
                 imgs = Variable(imgs.to(device))
                 labels = Variable(labels.to(device))
 
+                # predict the images
                 out = model(imgs)
 
+                # calculate loss & accuracy
                 loss = loss_func(out, labels)
                 eval_loss += loss.item()
                 pred = torch.max(out, 1)[1]
                 num_correct = (pred == labels).sum()
                 eval_acc += num_correct.item()
 
+                # calculate f-measure
                 eval_tp += (labels * pred).sum()
                 eval_tn += ((1 - labels) * (1 - pred)).sum()
                 eval_fp += ((1 - labels) * pred).sum()
                 eval_fn += (labels * (1 - pred)).sum()
 
+        # calculate f-measure
         epsilon = 1e-7
         eval_precision = eval_tp / (eval_tp + eval_fp + epsilon)
         eval_recall = eval_tp / (eval_tp + eval_fn + epsilon)
         eval_f1 = 2 * (eval_precision * eval_recall) / (eval_precision + eval_recall + epsilon)
+
         print('Test Loss: {:.6f}, Acc: {:.6f}, Recall: {:.6f}, F1: {:.6f}'.format(eval_loss / (len(
             test_data)), eval_acc / (len(test_data)), eval_recall, eval_f1))
